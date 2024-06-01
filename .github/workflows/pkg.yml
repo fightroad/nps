@@ -16,7 +16,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: 1.15
+        go-version: 1.22
       id: go
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
@@ -64,6 +64,8 @@ jobs:
           linux_mips_server.tar.gz
           darwin_amd64_client.tar.gz
           darwin_amd64_server.tar.gz
+          darwin_arm64_client.tar.gz
+          darwin_arm64_server.tar.gz
           windows_386_client.tar.gz
           windows_386_server.tar.gz
           windows_amd64_client.tar.gz
