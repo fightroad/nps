@@ -10,11 +10,11 @@
 ***DockerHub***： [NPS](https://hub.docker.com/r/yisier1/nps) [NPC](https://hub.docker.com/r/yisier1/npc)
 
 # 交流群
-聊天灌水QQ群：619833483
+聊天灌水QQ群：770569342,619833483(已满)
 
 # 公益云内网穿透
 https://natnps.com/
-公益NPS内网穿透服务，长期免费，5M带宽，不限流量，欢迎来嫖，自行注册账号。
+公益NPS内网穿透服务，长期免费，6M带宽，3条隧道，不限流量，欢迎来嫖，自行注册账号。
 
 # 特价云服务器  
 国内BGP，游戏开服，2核 2G 15M上行 25元/月，[专属连接，首月5折](https://www.rainyun.com/MjY0MzY1_)
