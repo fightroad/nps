@@ -65,6 +65,7 @@ func (s *BaseController) Prepare() {
 	s.Data["allow_tunnel_num_limit"], _ = beego.AppConfig.Bool("allow_tunnel_num_limit")
 	s.Data["allow_local_proxy"], _ = beego.AppConfig.Bool("allow_local_proxy")
 	s.Data["allow_user_change_username"], _ = beego.AppConfig.Bool("allow_user_change_username")
+	s.Data["current_year"] = time.Now().Year()
 }
 
 // 加载模板

@@ -59,11 +59,7 @@ $(document).ready(function () {
     });
 
     // Close menu in canvas mode
-    $('.close-canvas-menu').on('click', function (e) {
-        e.preventDefault();
-        $("body").toggleClass("mini-navbar");
-        SmoothlyMenu();
-    });
+    $('.close-canvas-menu').off('click');
 
     // Run menu of canvas
     //$('body.canvas-menu .sidebar-collapse').slimScroll({
@@ -112,14 +108,6 @@ $(document).ready(function () {
     //   if (!$('body').hasClass('no-skin-config'))
     //       $('body').append(data);
     //});
-
-    // Minimalize menu
-    $('.navbar-minimalize').on('click', function (event) {
-        event.preventDefault();
-        $("body").toggleClass("mini-navbar");
-        SmoothlyMenu();
-
-    });
 
     // Tooltips demo
     //$('.tooltip-demo').tooltip({
@@ -234,27 +222,6 @@ $(document).ready(function () {
 //            }, 2000);
 //        });
 //}
-
-function SmoothlyMenu() {
-    if (!$('body').hasClass('mini-navbar') || $('body').hasClass('body-small')) {
-        // Hide menu in order to smoothly turn on when maximize menu
-        $('#side-menu').hide();
-        // For smoothly turn on menu
-        setTimeout(
-            function () {
-                $('#side-menu').fadeIn(400);
-            }, 200);
-    } else if ($('body').hasClass('fixed-sidebar')) {
-        $('#side-menu').hide();
-        setTimeout(
-            function () {
-                $('#side-menu').fadeIn(400);
-            }, 100);
-    } else {
-        // Remove all inline style from jquery fadeIn function to reset menu state
-        $('#side-menu').removeAttr('style');
-    }
-}
 
 // Dragable panels
 function WinMove() {
