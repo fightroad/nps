@@ -43,14 +43,15 @@
                     <div class="dropdown profile-element">
                     {{if eq true .isAdmin}}
                         <span><i class="fa fa-user-cog fa-3x"></i></span>
-                        <span class="clear"> <span class="block m-t-xs"><strong class="font-bold" langtag="word-admin"></strong></span>
-                        <span class="text-muted text-xs block" langtag="word-system">
+                        <span class="clear">
+                            <span class="block m-t-xs"><strong class="font-bold" langtag="word-admin"></strong></span>
+                        </span>
                     {{else}}
                         <span><i class="fa fa-user fa-3x"></i></span>
-                        <span class="clear"> <span class="block m-t-xs"><strong class="font-bold">{{.username}}</strong></span>
-                        <span class="text-muted text-xs block" langtag="word-user">
-                    {{end}}
+                        <span class="clear">
+                            <span class="block m-t-xs"><strong class="font-bold">{{.username}}</strong></span>
                         </span>
+                    {{end}}
                     </div>
                     <div class="logo-element" langtag="application"></div>
                 </li>
@@ -102,11 +103,6 @@
                 <a href="{{.web_base_url}}/global/index"><i class="fa fa-cog fa-lg"></i>
                     <span class="nav-label" langtag="word-globalparam"></span></a>
                 </li>
-
-                <li class="{{if eq "help" .menu}}active{{end}}">
-                    <a href="https://ehang.io/nps/documents" target="_blank"><i class="fa fa-lightbulb fa-lg"></i>
-                    <span class="nav-label" langtag="word-help"></span></a>
-                </li>
             </ul>
         </div>
     </nav>
@@ -118,10 +114,6 @@
                     <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i></a>
                 </div>
                 <ul class="nav navbar-top-links navbar-right">
-                    <li>
-                        <span class="m-r-sm text-muted welcome-message"><span langtag="word-welcome"></span>
-                        <a href="https://github.com/yisier/nps" langtag="application"></a></span>
-                    </li>
                     <li>
                         <span class="btn-group dropdown">
                             <button id="languagemenu" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-globe-asia fa-lg"></i><span></span></button>
@@ -140,27 +132,16 @@
     {{.LayoutContent}}
 
         <div class="footer fixed">
-            <div class="float-right">
-                <span langtag="word-readmore"></span> <strong><a href="https://ehang.io/nps" langtag="word-go"></a></strong>
-            </div>
             <div><strong langtag="word-copyright"></strong> <span langtag="application"></span> &copy; 2018-2020</div>
         </div>
     </div>
 </div>
 
+<script>
+    window.nps = { "web_base_url": "{{.web_base_url}}" };
+</script>
+
+
 </body>
 </html>
-
-<script>
-    window.nps = { "web_base_url": {{.web_base_url}} }
-/*     googleTranslateElementInit()
-    
-     function googleTranslateElementInit() {
-         new google.translate.TranslateElement({
-             layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
-         }, 'wrapper');
-     }
-*/
-</script>
-{{/*<script src="http://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>*/}}
 

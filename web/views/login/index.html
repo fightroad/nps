@@ -15,89 +15,108 @@
     <link href="{{.web_base_url}}/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{.web_base_url}}/static/css/style.css" rel="stylesheet">
 
+    <style>
+        .login-card {
+            width: 360px;
+            padding: 32px;
+            border-radius: 10px;
+            box-shadow: 0 18px 45px rgba(44, 62, 80, 0.2);
+            border: 1px solid rgba(44, 62, 80, 0.08);
+            background: linear-gradient(160deg, #ffffff 0%, #f7f9fc 100%);
+        }
+
+        .login-title {
+            font-weight: 700;
+            color: #1f2a44;
+        }
+
+        .login-subtitle {
+            color: #6b7a99;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .login-card .form-control {
+            height: 44px;
+            border-radius: 6px;
+            border: 1px solid #d6deeb;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .login-card .form-control:focus {
+            border-color: #4f8cff;
+            box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
+        }
+
+        .login-card .btn-primary {
+            height: 44px;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+    </style>
+
     <!-- Latest compiled and minified JavaScript -->
     <script src="{{.web_base_url}}/static/js/jquery-3.4.1.min.js"></script>
+    <script src="{{.web_base_url}}/static/js/popper.min.js"></script>
     <script src="{{.web_base_url}}/static/js/bootstrap.min.js"></script>
     <!-- Latest compiled and minified Locales -->
     <script src="{{.web_base_url}}/static/js/language.js?v=20250528" type="text/javascript"></script>
 
 </head>
 
-<body class="gray-bg">
-<div class="row border-bottom">
-    <nav class="navbar navbar-static-top navbar-right" role="navigation" style="margin: 20px 40px">
-        <div></div>
-        <h1 style="margin:0px" class="navbar-header font-bold" langtag="application"></h1>
-        <span class="btn-group dropdown">
-                <button id="languagemenu" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false"><i
-                            class="fa fa-globe-asia fa-lg"></i><span></span></button>
-                <ul class="dropdown-menu"></ul>
-            </span>
-    </nav>
+<body class="gray-bg d-flex justify-content-center align-items-center position-relative" style="min-height: 100vh;">
+<div class="position-absolute" style="top: 20px; right: 30px;">
+    <span class="btn-group dropdown">
+        <button id="languagemenu" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false"><i class="fa fa-globe-asia fa-lg"></i><span></span>
+        </button>
+        <ul class="dropdown-menu"></ul>
+    </span>
 </div>
-<div class="loginColumns animated fadeInDown mt-3 px-5">
-    <div class="row">
-
-        <div class="col-md-6 mt-3">
-            <h3 langtag="info-tagline"></h3>
-            <ul class="px-1 text-justify">
-                <li langtag="info-feature1"></li>
-                <li langtag="info-feature2"></li>
-                <li langtag="info-feature3"></li>
-                <li langtag="info-feature4"></li>
-                <li langtag="info-feature5"></li>
-                <li langtag="info-feature6"></li>
-                <li langtag="info-feature7"></li>
-                <li langtag="info-feature8"></li>
-                <li langtag="info-feature9"></li>
-            </ul>
+<div class="login-card">
+    <h1 class="login-title mb-1 text-center" langtag="application"></h1>
+    <div class="login-subtitle text-center" langtag="info-tagline"></div>
+    <form class="m-t" onsubmit="return false">
+        <div class="form-group">
+            <input name="username" class="form-control" placeholder="username" required=""
+                   langtag="word-username">
         </div>
-
-        <div class="col-md-6 mt-3">
-            <div class="ibox-content">
-                <form class="m-t" onsubmit="return false">
-                    <div class="form-group">
-                        <input name="username" class="form-control" placeholder="username" required=""
-                               langtag="word-username">
-                    </div>
-                    <div class="form-group">
-                        <input name="password" type="password" class="form-control" placeholder="password" required=""
-                               langtag="word-password">
-                    </div>
-                    {{if eq true .captcha_open}}
-                        <div class="form-group">
-                            {{create_captcha}}
-                            <input name="captcha" class="form-control" placeholder="captcha" required=""
-                                   langtag="word-captcha">
-                        </div>
-                    {{end}}
-                    <button onclick="login()" class="btn btn-primary block full-width m-b"
-                            langtag="word-login"></button>
-                    {{if eq true .register_allow}}
-                        <p class="text-muted text-center"><small langtag="info-noaccount"></small></p>
-                        <a class="btn btn-sm btn-white btn-block" href="{{.web_base_url}}/login/register"
-                           langtag="word-register"></a>
-                    {{end}}
-                </form>
+        <div class="form-group mt-3">
+            <input name="password" type="password" class="form-control" placeholder="password" required=""
+                   langtag="word-password">
+        </div>
+        {{if eq true .captcha_open}}
+            <div class="form-group mt-3">
+                {{create_captcha}}
+                <input name="captcha" class="form-control mt-2" placeholder="captcha" required=""
+                       langtag="word-captcha">
             </div>
-        </div>
-    </div>
-    <hr/>
-    <div class="footer" style="position: unset;">
-        <div class="pull-right">
-            <span langtag="word-readmore"></span> <strong><a href="https://ehang.io/nps" langtag="word-go"></a></strong>
-        </div>
-        <div><strong langtag="word-copyright"></strong> <span langtag="application"></span> &copy; 2018-2020</div>
-    </div>
+        {{end}}
+        <button onclick="login()" class="btn btn-primary block full-width mt-4"
+                langtag="word-login"></button>
+        {{if eq true .register_allow}}
+            <a class="btn btn-sm btn-white btn-block mt-3" href="{{.web_base_url}}/login/register"
+               langtag="word-register"></a>
+        {{end}}
+    </form>
 </div>
-
+ 
 </body>
 </html>
 
 
 <script type="text/javascript">
-    window.nps = {"web_base_url": {{.web_base_url}} }
+    window.nps = {"web_base_url": "{{.web_base_url}}"}
+
+    function refreshCaptcha() {
+        $('img[src*="/captcha/"]').each(function () {
+            const $img = $(this);
+            const src = $img.attr('src').split('?')[0];
+            $img.attr('src', src + '?reload=' + Date.now());
+        });
+        $('input[name="captcha"]').val('');
+    }
 
     // Login Page Flipbox control
     function login() {
@@ -110,7 +129,11 @@
                     window.location.href = "{{.web_base_url}}/index/index"
                 } else {
                     alert(res.msg)
+                    refreshCaptcha()
                 }
+            },
+            error: function () {
+                refreshCaptcha()
             }
         })
         return false

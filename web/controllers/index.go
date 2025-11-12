@@ -87,8 +87,25 @@ func (s *IndexController) GetTunnel() {
 
 func (s *IndexController) Add() {
 	if s.Ctx.Request.Method == "GET" {
-		s.Data["type"] = s.getEscapeString("type")
+		taskType := s.getEscapeString("type")
+		s.Data["type"] = taskType
 		s.Data["client_id"] = s.getEscapeString("client_id")
+		menuName := "tcp"
+		switch taskType {
+		case "udp":
+			menuName = "udp"
+		case "httpProxy":
+			menuName = "http"
+		case "socks5":
+			menuName = "socks5"
+		case "secret":
+			menuName = "secret"
+		case "p2p":
+			menuName = "p2p"
+		case "file":
+			menuName = "file"
+		}
+		s.Data["menu"] = menuName
 		s.SetInfo("add tunnel")
 		s.display()
 	} else {
@@ -198,6 +215,22 @@ func (s *IndexController) Edit() {
 			s.error()
 		} else {
 			s.Data["t"] = t
+			menuName := "tcp"
+			switch t.Mode {
+			case "udp":
+				menuName = "udp"
+			case "httpProxy":
+				menuName = "http"
+			case "socks5":
+				menuName = "socks5"
+			case "secret":
+				menuName = "secret"
+			case "p2p":
+				menuName = "p2p"
+			case "file":
+				menuName = "file"
+			}
+			s.Data["menu"] = menuName
 		}
 		s.SetInfo("edit tunnel")
 		s.display()

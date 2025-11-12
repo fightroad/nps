@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego/cache"
-	"github.com/astaxie/beego/utils/captcha"
 	"math/rand"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/astaxie/beego/cache"
+	"github.com/astaxie/beego/utils/captcha"
 
 	"ehang.io/nps/lib/common"
 	"ehang.io/nps/lib/file"
@@ -50,14 +51,17 @@ func (self *LoginController) Verify() {
 	captchaOpen, _ := beego.AppConfig.Bool("open_captcha")
 	if captchaOpen {
 		if !cpt.VerifyReq(self.Ctx.Request) {
-			self.Data["json"] = map[string]interface{}{"status": 0, "msg": "the verification code is wrong, please get it again and try again"}
+			self.Data["json"] = map[string]interface{}{
+				"status": 0,
+				"msg":    "验证码错误，请重新获取后再试",
+			}
 			self.ServeJSON()
 		}
 	}
 	if self.doLogin(username, password, true) {
-		self.Data["json"] = map[string]interface{}{"status": 1, "msg": "login success"}
+		self.Data["json"] = map[string]interface{}{"status": 1, "msg": "登录成功"}
 	} else {
-		self.Data["json"] = map[string]interface{}{"status": 0, "msg": "username or password incorrect"}
+		self.Data["json"] = map[string]interface{}{"status": 0, "msg": "用户名或密码错误"}
 	}
 	self.ServeJSON()
 }
@@ -128,12 +132,12 @@ func (self *LoginController) Register() {
 		self.TplName = "login/register.html"
 	} else {
 		if b, err := beego.AppConfig.Bool("allow_user_register"); err != nil || !b {
-			self.Data["json"] = map[string]interface{}{"status": 0, "msg": "register is not allow"}
+			self.Data["json"] = map[string]interface{}{"status": 0, "msg": "暂未开放注册"}
 			self.ServeJSON()
 			return
 		}
 		if self.GetString("username") == "" || self.GetString("password") == "" || self.GetString("username") == beego.AppConfig.String("web_username") {
-			self.Data["json"] = map[string]interface{}{"status": 0, "msg": "please check your input"}
+			self.Data["json"] = map[string]interface{}{"status": 0, "msg": "请检查输入内容"}
 			self.ServeJSON()
 			return
 		}
@@ -148,7 +152,7 @@ func (self *LoginController) Register() {
 		if err := file.GetDb().NewClient(t); err != nil {
 			self.Data["json"] = map[string]interface{}{"status": 0, "msg": err.Error()}
 		} else {
-			self.Data["json"] = map[string]interface{}{"status": 1, "msg": "register success"}
+			self.Data["json"] = map[string]interface{}{"status": 1, "msg": "注册成功"}
 		}
 		self.ServeJSON()
 	}
