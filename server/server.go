@@ -1,7 +1,6 @@
 package server
 
 import (
-	"ehang.io/nps/lib/version"
 	"errors"
 	"math"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"ehang.io/nps/lib/version"
 
 	"ehang.io/nps/bridge"
 	"ehang.io/nps/lib/common"
@@ -434,10 +435,36 @@ func GetDashboardData() map[string]interface{} {
 	data["httpProxyPort"] = beego.AppConfig.String("http_proxy_port")
 	data["httpsProxyPort"] = beego.AppConfig.String("https_proxy_port")
 	data["ipLimit"] = beego.AppConfig.String("ip_limit")
-	data["flowStoreInterval"] = beego.AppConfig.String("flow_store_interval")
+	// 流量数据持久化：转换为描述性文字
+	flowStoreIntervalStr := beego.AppConfig.String("flow_store_interval")
+	if flowStoreIntervalStr == "" || flowStoreIntervalStr == "0" {
+		data["flowStoreInterval"] = "不持久化"
+	} else {
+		if interval, err := strconv.Atoi(flowStoreIntervalStr); err == nil && interval > 0 {
+			data["flowStoreInterval"] = "每" + flowStoreIntervalStr + "分钟"
+		} else {
+			data["flowStoreInterval"] = flowStoreIntervalStr
+		}
+	}
 	data["serverIp"] = beego.AppConfig.String("p2p_ip")
 	data["p2pPort"] = beego.AppConfig.String("p2p_port")
-	data["logLevel"] = beego.AppConfig.String("log_level")
+	// 日志级别：转换为描述性文字
+	logLevelStr := beego.AppConfig.String("log_level")
+	logLevelMap := map[string]string{
+		"0": "Emergency",
+		"1": "Alert",
+		"2": "Critical",
+		"3": "Error",
+		"4": "Warning",
+		"5": "Notice",
+		"6": "Informational",
+		"7": "Debug",
+	}
+	if desc, ok := logLevelMap[logLevelStr]; ok {
+		data["logLevel"] = desc
+	} else {
+		data["logLevel"] = logLevelStr
+	}
 	tcpCount := 0
 
 	file.GetDb().JsonDb.Clients.Range(func(key, value interface{}) bool {

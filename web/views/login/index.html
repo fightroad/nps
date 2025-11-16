@@ -17,13 +17,35 @@
     <link href="{{.web_base_url}}/static/css/style.css" rel="stylesheet">
 
     <style>
+        body {
+            background-image: url('{{.web_base_url}}/static/img/login-bg.png');
+            background-size: auto;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
         .login-card {
             width: 360px;
+            max-width: 90%;
             padding: 32px;
             border-radius: 10px;
             box-shadow: 0 18px 45px rgba(44, 62, 80, 0.2);
-            border: 1px solid rgba(44, 62, 80, 0.08);
-            background: linear-gradient(160deg, #ffffff 0%, #f7f9fc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.6) 0%, rgba(247, 249, 252, 0.6) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .login-title {
@@ -40,13 +62,20 @@
         .login-card .form-control {
             height: 44px;
             border-radius: 6px;
-            border: 1px solid #d6deeb;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         }
 
         .login-card .form-control:focus {
-            border-color: #1ab394;
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            border-color: rgba(26, 179, 148, 0.6);
             box-shadow: 0 0 0 2px rgba(26, 179, 148, 0.2);
+            outline: none;
+        }
+        
+        .login-card .form-control::placeholder {
+            color: rgba(0, 0, 0, 0.6);
         }
 
         .login-card .btn-primary {
@@ -54,6 +83,13 @@
             border-radius: 6px;
             font-weight: 600;
             letter-spacing: 0.3px;
+        }
+        
+        @media (max-width: 480px) {
+            .login-card {
+                width: 100%;
+                padding: 24px;
+            }
         }
     </style>
 
@@ -66,7 +102,7 @@
 
 </head>
 
-<body class="gray-bg d-flex justify-content-center align-items-center position-relative" style="min-height: 100vh;">
+<body class="d-flex justify-content-center align-items-center position-relative" style="min-height: 100vh;">
 <div class="position-absolute" style="top: 20px; right: 30px;">
     <span class="btn-group dropdown">
         <button id="languagemenu" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"
@@ -102,10 +138,6 @@
         {{end}}
     </form>
 </div>
- 
-</body>
-</html>
-
 
 <script type="text/javascript">
     window.nps = {"web_base_url": "{{.web_base_url}}"}

@@ -44,6 +44,12 @@
                 flex: 1 1 auto;
             }
         }
+        /* 统一菜单图标宽度和间距 */
+        .navbar-static-side .nav > li > a > i.fa-lg {
+            width: 1.33333em;
+            text-align: center;
+            margin-right: 8px;
+        }
     </style>
 
     <!-- Latest compiled and minified JavaScript -->
@@ -84,52 +90,37 @@
                     <div class="logo-element" langtag="application"></div>
                 </li>
                 <li class="{{if eq "index" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/"><i class="fa fa-tachometer-alt fa-lg"></i>
-                    <span class="nav-label" langtag="word-dashboard"></span></a>
+                    <a href="{{.web_base_url}}/"><i class="fa fa-tachometer-alt fa-lg"></i> <span class="nav-label" langtag="word-dashboard"></span></a>
                 </li>
-
-
-
                 <li class="{{if eq "client" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/client/list"><i class="fa fa-desktop fa-lg"></i>
-                    <span class="nav-label" langtag="word-client"></span></a>
+                    <a href="{{.web_base_url}}/client/list"><i class="fa fa-desktop fa-lg"></i> <span class="nav-label" langtag="word-client"></span></a>
                 </li>
                 <li class="{{if eq "host" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/hostlist"><i class="fa fa-globe fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-host"></span></a>
+                    <a href="{{.web_base_url}}/index/hostlist"><i class="fa fa-globe fa-lg"></i> <span class="nav-label" langtag="scheme-host"></span></a>
                 </li>
                 <li class="{{if eq "tcp" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/tcp"><i class="fa fa-retweet fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-tcp"></span></a>
+                    <a href="{{.web_base_url}}/index/tcp"><i class="fa fa-retweet fa-lg"></i> <span class="nav-label" langtag="scheme-tcp"></span></a>
                 </li>
                 <li class="{{if eq "udp" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/udp"><i class="fa fa-random fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-udp"></span></a>
+                    <a href="{{.web_base_url}}/index/udp"><i class="fa fa-random fa-lg"></i> <span class="nav-label" langtag="scheme-udp"></span></a>
                 </li>
                 <li class="{{if eq "http" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/http"><i class="fa fa-server fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-httpproxy"></span></a>
+                    <a href="{{.web_base_url}}/index/http"><i class="fa fa-server fa-lg"></i> <span class="nav-label" langtag="scheme-httpproxy"></span></a>
                 </li>
                 <li class="{{if eq "socks5" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/socks5"><i class="fa fa-layer-group fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-socks5"></span></a>
+                    <a href="{{.web_base_url}}/index/socks5"><i class="fa fa-layer-group fa-lg"></i> <span class="nav-label" langtag="scheme-socks5"></span></a>
                 </li>
                 <li class="{{if eq "secret" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/secret"><i class="fa fa-low-vision fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-secret"></span></a>
+                    <a href="{{.web_base_url}}/index/secret"><i class="fa fa-low-vision fa-lg"></i> <span class="nav-label" langtag="scheme-secret"></span></a>
                 </li>
                 <li class="{{if eq "p2p" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/p2p"><i class="fa fa-exchange-alt fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-p2p"></span></a>
+                    <a href="{{.web_base_url}}/index/p2p"><i class="fa fa-exchange-alt fa-lg"></i> <span class="nav-label" langtag="scheme-p2p"></span></a>
                 </li>
                 <li class="{{if eq "file" .menu}}active{{end}}">
-                    <a href="{{.web_base_url}}/index/file"><i class="fa fa-briefcase fa-lg"></i>
-                    <span class="nav-label" langtag="scheme-file"></span></a>
+                    <a href="{{.web_base_url}}/index/file"><i class="fa fa-briefcase fa-lg"></i> <span class="nav-label" langtag="scheme-file"></span></a>
                 </li>
-
                 <li class="{{if eq "global" .menu}}active{{end}}">
-                <a href="{{.web_base_url}}/global/index"><i class="fa fa-cog fa-lg"></i>
-                    <span class="nav-label" langtag="word-globalparam"></span></a>
+                    <a href="{{.web_base_url}}/global/index"><i class="fa fa-cog fa-lg"></i> <span class="nav-label" langtag="word-globalparam"></span></a>
                 </li>
             </ul>
         </div>
