@@ -117,11 +117,8 @@ func StartNewServer(bridgePort int, cnf *file.Tunnel, bridgeType string, bridgeD
 func dealClientFlow() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			dealClientData()
-		}
+	for range ticker.C {
+		dealClientData()
 	}
 }
 
@@ -343,7 +340,6 @@ func dealClientData() {
 
 		return true
 	})
-	return
 }
 
 // delete all host and tasks by client id
@@ -511,14 +507,11 @@ func flowSession(m time.Duration) {
 	once.Do(func() {
 		ticker := time.NewTicker(m)
 		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				file.GetDb().JsonDb.StoreHostToJsonFile()
-				file.GetDb().JsonDb.StoreTasksToJsonFile()
-				file.GetDb().JsonDb.StoreClientsToJsonFile()
-				file.GetDb().JsonDb.StoreGlobalToJsonFile()
-			}
+		for range ticker.C {
+			file.GetDb().JsonDb.StoreHostToJsonFile()
+			file.GetDb().JsonDb.StoreTasksToJsonFile()
+			file.GetDb().JsonDb.StoreClientsToJsonFile()
+			file.GetDb().JsonDb.StoreGlobalToJsonFile()
 		}
 	})
 }

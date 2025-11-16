@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"ehang.io/nps/lib/crypt"
 	"flag"
 	"fmt"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"ehang.io/nps/lib/crypt"
 
 	"ehang.io/nps/client"
 	"ehang.io/nps/lib/common"
@@ -59,7 +60,7 @@ func main() {
 		*logPath = common.GetNpcLogPath()
 	}
 	if common.IsWindows() {
-		*logPath = strings.Replace(*logPath, "\\", "\\\\", -1)
+		*logPath = strings.ReplaceAll(*logPath, "\\", "\\\\")
 	}
 	if *debug {
 		logs.SetLogger(logs.AdapterConsole, `{"level":`+*logLevel+`,"color":true}`)
@@ -109,7 +110,7 @@ func main() {
 		switch os.Args[1] {
 		case "status":
 			if len(os.Args) > 2 {
-				path := strings.Replace(os.Args[2], "-config=", "", -1)
+				path := strings.ReplaceAll(os.Args[2], "-config=", "")
 				client.GetTaskStatus(path)
 			}
 		case "register":
@@ -202,10 +203,8 @@ func (p *npc) run() error {
 		}
 	}()
 	run()
-	select {
-	case <-p.exit:
-		logs.Warning("stop...")
-	}
+	<-p.exit
+	logs.Warning("stop...")
 	return nil
 }
 
@@ -229,10 +228,10 @@ func run() {
 	}
 	env := common.GetEnvMap()
 	if *serverAddr == "" {
-		*serverAddr, _ = env["NPC_SERVER_ADDR"]
+		*serverAddr = env["NPC_SERVER_ADDR"]
 	}
 	if *verifyKey == "" {
-		*verifyKey, _ = env["NPC_SERVER_VKEY"]
+		*verifyKey = env["NPC_SERVER_VKEY"]
 	}
 	if *verifyKey != "" && *serverAddr != "" && *configPath == "" {
 		client.SetTlsEnable(*tlsEnable)
@@ -240,15 +239,14 @@ func run() {
 
 		vkeys := strings.Split(*verifyKey, `,`)
 		for _, key := range vkeys {
-			key := key
-			go func() {
+			go func(key string) {
 				for {
 					logs.Info("start vkey:" + key)
 					client.NewRPClient(*serverAddr, key, *connType, *proxyUrl, nil, *disconnectTime).Start()
 					logs.Info("Client closed! It will be reconnected in five seconds")
 					time.Sleep(time.Second * 5)
 				}
-			}()
+			}(key)
 		}
 
 	} else {
@@ -312,7 +310,7 @@ func inputCmd() {
 			os.Exit(0)
 		}
 
-		flag := strings.Replace(flag, " ", "", -1)
+		flag := strings.ReplaceAll(flag, " ", "")
 
 		// 如果输入不等于 1,2,3，4，则启动隧道
 		if flag != "1" && flag != "2" && flag != "3" && flag != "4" {
@@ -392,7 +390,7 @@ func systemService(flag string) {
 		}
 	}
 
-	vkey = strings.Replace(vkey, " ", "", -1)
+	vkey = strings.ReplaceAll(vkey, " ", "")
 
 	vkeys := strings.Split(vkey, `,`)
 
@@ -425,7 +423,6 @@ func systemService(flag string) {
 	}
 
 	inputCmd()
-	return
 }
 
 func systemPro(flag string, serAddr string, vkey string, tls bool) {
@@ -453,10 +450,10 @@ func systemPro(flag string, serAddr string, vkey string, tls bool) {
 
 		*logPath = common.GetNpcLogPath()
 		if common.IsWindows() {
-			*logPath = strings.Replace(*logPath, "\\", "\\\\", -1)
+			*logPath = strings.ReplaceAll(*logPath, "\\", "\\\\")
 		}
 
-		*logPath = strings.Replace(*logPath, "npc.log", "npc-"+vkey+".log", -1)
+		*logPath = strings.ReplaceAll(*logPath, "npc.log", "npc-"+vkey+".log")
 		svcConfig.Arguments = append(svcConfig.Arguments, "-log_path="+*logPath)
 
 		logs.NewLogger()

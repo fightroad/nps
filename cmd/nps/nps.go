@@ -2,12 +2,8 @@ package main
 
 import (
 	"bufio"
-	"ehang.io/nps/bridge"
-	"ehang.io/nps/lib/daemon"
-	"ehang.io/nps/server"
 	"flag"
 	"fmt"
-	"github.com/fatih/color"
 	"log"
 	"os"
 	"os/exec"
@@ -16,6 +12,11 @@ import (
 	"runtime/debug"
 	"strings"
 	"sync"
+
+	"ehang.io/nps/bridge"
+	"ehang.io/nps/lib/daemon"
+	"ehang.io/nps/server"
+	"github.com/fatih/color"
 
 	"ehang.io/nps/lib/file"
 	"ehang.io/nps/lib/install"
@@ -33,11 +34,10 @@ import (
 )
 
 var (
-	level      string
-	ver        = flag.Bool("version", false, "show current version")
-	confPath   = flag.String("conf_path", "", "set current confPath")
-	serverCmd  = flag.Bool("server", false, "NPS管理脚本")
-	npsLogPath = flag.String("log_path", "", "nps log path")
+	level     string
+	logPath   string // 全局日志路径变量，可在 run() 函数中使用
+	ver       = flag.Bool("version", false, "show current version")
+	serverCmd = flag.Bool("server", false, "NPS管理脚本")
 )
 
 func main() {
@@ -56,19 +56,18 @@ func main() {
 		return
 	}
 
-	var logPath string
-	// *confPath why get null value ?
+	// 从命令行参数解析 conf_path 和 log_path
 	for _, v := range os.Args[1:] {
 		switch v {
 		case "install", "start", "stop", "uninstall", "restart":
 			continue
 		}
 		if strings.Contains(v, "-conf_path=") {
-			common.ConfPath = strings.Replace(v, "-conf_path=", "", -1)
+			common.ConfPath = strings.ReplaceAll(v, "-conf_path=", "")
 		}
 
 		if strings.Contains(v, "-log_path=") {
-			logPath = strings.Replace(v, "-log_path=", "", -1)
+			logPath = strings.ReplaceAll(v, "-log_path=", "")
 		}
 	}
 
@@ -85,12 +84,12 @@ func main() {
 	logs.SetLogFuncCallDepth(3)
 
 	if logPath == "" {
-		logPath := beego.AppConfig.String("log_path")
+		logPath = beego.AppConfig.String("log_path")
 		if logPath == "" {
 			logPath = common.GetLogPath()
 		}
 		if common.IsWindows() {
-			logPath = strings.Replace(logPath, "\\", "\\\\", -1)
+			logPath = strings.ReplaceAll(logPath, "\\", "\\\\")
 		}
 	}
 
@@ -270,7 +269,7 @@ func inputCmd() {
 
 			logPath := filepath.Join(common.GetAppPath(), "nps.log")
 			if common.IsWindows() {
-				logPath = strings.Replace(logPath, "\\", "\\\\", -1)
+				logPath = strings.ReplaceAll(logPath, "\\", "\\\\")
 			}
 			svcConfig.Arguments = append(svcConfig.Arguments, "service")
 			svcConfig.Arguments = append(svcConfig.Arguments, "-conf_path="+common.GetAppPath())
@@ -279,7 +278,7 @@ func inputCmd() {
 			fmt.Println("日志文件路径为：", logPath)
 
 			svcConfig.Executable = binPath
-			s, err := service.New(prg, svcConfig)
+			s, _ := service.New(prg, svcConfig)
 
 			if service.Platform() == "unix-systemv" {
 				logs.Info("unix-systemv service")
@@ -301,8 +300,6 @@ func inputCmd() {
 			} else {
 				fmt.Println("NPS服务已启动，管理面板访问地址：127.0.0.1:" + beego.AppConfig.String("web_port"))
 			}
-
-			break
 		case "2":
 			// 卸载系统服务
 			err := service.Control(s, "stop")
@@ -325,7 +322,6 @@ func inputCmd() {
 			if err == nil {
 				fmt.Println("NPS服务已卸载成功")
 			}
-			break
 		case "3":
 			install.UpdateNpsNew()
 			return
@@ -343,7 +339,6 @@ func inputCmd() {
 				}
 			}
 			fmt.Println("NPS服务状态：" + statusMsg)
-			break
 		case "5":
 			// 启动 NPS
 			err := service.Control(s, "start")
@@ -352,8 +347,6 @@ func inputCmd() {
 			} else {
 				fmt.Println("NPS服务启动成功")
 			}
-
-			break
 		case "6":
 			// 停止 NPS
 			err := service.Control(s, "stop")
@@ -362,8 +355,6 @@ func inputCmd() {
 			} else {
 				fmt.Println("NPS服务停止成功")
 			}
-
-			break
 		case "7":
 			// 重启 NPS
 			err := service.Control(s, "restart")
@@ -372,16 +363,10 @@ func inputCmd() {
 			} else {
 				fmt.Println("NPS服务重启成功")
 			}
-
-			break
 		}
 	}
 
 	inputCmd()
-}
-
-func installNps() {
-
 }
 
 type nps struct {
@@ -412,10 +397,8 @@ func (p *nps) run() error {
 		}
 	}()
 	run()
-	select {
-	case <-p.exit:
-		logs.Warning("stop...")
-	}
+	<-p.exit
+	logs.Warning("stop...")
 	return nil
 }
 
@@ -430,7 +413,7 @@ func run() {
 		os.Exit(0)
 	}
 
-	logs.Info("日志路径111：" + *npsLogPath)
+	logs.Info("the log path is:" + logPath)
 	logs.Info("the config path is:" + common.GetRunPath())
 	logs.Info("the version of server is %s ,allow client core version to be %s,tls enable is %t", version.VERSION, version.GetVersion(), bridge.ServerTlsEnable)
 	connection.InitConnectionService()
