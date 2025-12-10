@@ -82,6 +82,16 @@ func (s *BaseController) display(tpl ...string) {
 	}
 	ip := s.Ctx.Request.Host
 	s.Data["ip"] = common.GetIpByAddr(ip)
+
+	global := file.GetDb().GetGlobal()
+	if global != nil && global.ServerUrl != "" && global.ServerUrl != ip {
+		// 替换掉 http:// 或者 https://
+		ip = global.ServerUrl
+		ip = strings.ReplaceAll(ip, "http://", "")
+		ip = strings.ReplaceAll(ip, "https://", "")
+		s.Data["ip"] = ip
+	}
+
 	s.Data["bridgeType"] = beego.AppConfig.String("bridge_type")
 	if common.IsWindows() {
 		s.Data["win"] = ".exe"
