@@ -1,32 +1,68 @@
 # NPS
 
-[新特性文档](https://dqg9t9eulqq.feishu.cn/wiki/FmVVwDcEGiTZxekYJl5ccuFanlg?from=from_copylink)
-
+[新特性文档](https://dqg9t9eulqq.feishu.cn/wiki/FmVVwDcEGiTZxekYJl5ccuFanlg?from=from_copylink)  
+[原版文档](https://ehang.io/nps/documents)
 # 说明
 由于nps已经停更多年，存留了不少bug和未完善的功能。
-
 此版本基于 nps 0.26.10的基础上二次开发而来。
+### 交流
+聊天灌水QQ群：619833483，热心群主可提供免费远程协助👍👍👍
 
 ***DockerHub***： [NPS](https://hub.docker.com/r/yisier1/nps) [NPC](https://hub.docker.com/r/yisier1/npc)
 
 ***宝塔面板***：[宝塔面板 Docker](docs/bt.md)
 
-# 交流群
-聊天灌水QQ群：619833483(2000人群),770569342
-
-# 免费NPS节点
-https://natnps.com/
-免费NPS内网穿透节点，长期免费，6M带宽，3条隧道，欢迎来嫖，自行注册账号。
-
-# 特价云服务器  
-国内BGP，游戏开服，2核 2G 15M上行 25元/月，[专属连接，首月5折](https://www.rainyun.com/MjY0MzY1_)
-
-# 提示
 强烈推荐使用无配置文件模式启动客户端（删除掉npc.exe 目录下的`conf`文件夹即可），所有数据应该在服务端保存和配置，而客户端只做连接转发。客户端配置文件对小白极不友好，配置繁琐，容易出错。   
 0.26.21 版本后的客户端，无需再通过命令行方式启动、安装、卸载客户端，直接双击运行，按照提示输入指令即可完成，非常方便。
 
+# 广告
+[NPS云穿透](https://natnps.com/register?utm_from=MQ==)，免费3M带宽，2条隧道；6.8元12M带宽，10条隧道；13.8元24M带宽，20条隧道。  
+雨云，500M带宽服务器；云服务器15元起，[专属连接，首月5折](https://www.rainyun.com/MjY0MzY1_)。
+
+# 快速上手
+***服务端启动/安装：***`./npc(.exe) -server`    
+
+![img.png](image/new/server.png)
+
+***客户端启动/安装：*** `./npc(.exe)`
+
+![image](image/new/cmd.png)
+
+
 
 # 更新日志  
+- 2026-03-27  v0.26.32
+  - 修复：
+    - 客户端注册参数未正确处理[快捷启动命令]和[TLS快捷启动命令] [#303](https://github.com/yisier/nps/issues/303)  
+    - 修复https反向代理bug，感谢[okawao](https://github.com/okawao) 的 PR  
+    
+    
+- 2026-03-23  v0.26.31  
+  - 新增：
+    - 域名解析记录开关功能 [#314](https://github.com/yisier/nps/issues/314)
+    - TCP隧道增加Basic认证 [306](https://github.com/yisier/nps/issues/306)
+  - 修复：
+    - 新增隧道出现secret mode keys must be unique [301](https://github.com/yisier/nps/issues/301)
+
+
+- 2026-03-12  v0.26.30  
+  修复：
+  - http 协议 websocket 错误，感谢[xiaozonglong](https://github.com/xiaozonglong) 提供的 home assistant 环境 ,[#268](https://github.com/yisier/nps/issues/268),[#296](https://github.com/yisier/nps/issues/296)
+  - 域名解析中，主机url点击无法跳转非80端口 [311](https://github.com/yisier/nps/issues/311)  
+  - 新增的主机配置页面，客户端ID异常 [#310](https://github.com/yisier/nps/issues/310)
+  - 自动 HTTPS(301) 按照 `https_proxy_port` 配置的端口号跳转
+  
+  
+- 2026-01-24 v0.26.29  
+  新增：  
+  GUI 客户端，基于 Wails 开发，[点击查看了解更多](https://github.com/yisier/nps/blob/master/cmd/npc/npc-gui/README.md)，需要 WebView2 运行时，可通过两种方式添加客户端。  
+  方式1：直接输入快捷启动命令即可  
+  方式2：手动添加客户端，输入-server -vkey等参数
+  ![img.png](image/new/gui.png)
+  修复：  
+  Android 包未构建到 Release [72](https://github.com/yisier/nps/issues/72)
+  
+
 - 2025-12-06 v0.26.28  
   -【全局参数】页面新增`服务地址`配置项，用于客户端命令地址显示、隧道访问地址显示 [293](https://github.com/yisier/nps/issues/293)   
   -【IP授权功能优化】，通过穿透的端口去提交 IP 认证，感谢 [Aqamoe](https://github.com/Aqamoe) 的建议 [291](https://github.com/yisier/nps/issues/291)  

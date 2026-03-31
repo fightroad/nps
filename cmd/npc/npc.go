@@ -351,7 +351,7 @@ func startNpcServer(startCmd string) {
 	}
 	go func() {
 		for {
-			if tls == "-tls_enable=true" || len(array) > 2 {
+			if tls == "-tls_enable=true" || tls == "true" {
 				client.SetTlsEnable(true)
 				logs.Info("start cmd:-server=" + serAddr + " -vkey=" + vkey + " " + tls)
 				logs.Info("the version of client is %s, the core version of client is %s,tls enable is %t", version.VERSION, version.GetVersion(), client.GetTlsEnable())
@@ -408,8 +408,13 @@ func systemService(flag string) {
 
 		for _, item := range cmdArray {
 			array := strings.Fields(item)
-			// tls
+
+			tls := "false"
 			if len(array) > 2 {
+				tls = array[2]
+			}
+			// tls
+			if tls == "-tls_enable=true" || tls == "true" {
 				systemPro(flag, array[0], array[1], true)
 			} else {
 				systemPro(flag, array[0], array[1], false)

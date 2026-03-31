@@ -96,7 +96,7 @@ func (s *DbUtils) GetIdByVerifyKey(vKey string, addr string) (id int, err error)
 func (s *DbUtils) NewTask(t *Tunnel) (err error) {
 	s.JsonDb.Tasks.Range(func(key, value interface{}) bool {
 		v := value.(*Tunnel)
-		if (v.Mode == "secret" || v.Mode == "p2p") && v.Password == t.Password {
+		if (v.Mode == "secret" || v.Mode == "p2p") && v.Password == t.Password && t.Password != "" {
 			err = errors.New(fmt.Sprintf("secret mode keys %s must be unique", t.Password))
 			return false
 		}
@@ -376,6 +376,13 @@ func (s *DbUtils) GetInfoByHost(host string, r *http.Request) (h *Host, err erro
 		//If not set, default matches all
 		if v.Location == "" {
 			v.Location = "/"
+		}
+		// "*" means SNI-based HTTPS lookup where actual URI is unknown, skip location filter
+		if r.RequestURI == "*" {
+			if h == nil || (len(v.Location) > len(h.Location)) {
+				h = v
+			}
+			continue
 		}
 		if strings.Index(r.RequestURI, v.Location) == 0 {
 			if h == nil || (len(v.Location) > len(h.Location)) {
