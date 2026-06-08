@@ -58,7 +58,7 @@ func DealBridgeTask() {
 	for {
 		select {
 		case t := <-Bridge.OpenTask:
-			AddTask(t)
+			StartTask(t.Id)
 		case t := <-Bridge.CloseTask:
 			StopServer(t.Id)
 		case id := <-Bridge.CloseClient:
@@ -68,13 +68,11 @@ func DealBridgeTask() {
 					file.GetDb().DelClient(id)
 				}
 			}
-		case tunnel := <-Bridge.OpenTask:
-			StartTask(tunnel.Id)
 		case s := <-Bridge.SecretChan:
 			logs.Trace("New secret connection, addr", s.Conn.Conn.RemoteAddr())
 			if t := file.GetDb().GetTaskByMd5Password(s.Password); t != nil {
 				if t.Status {
-					go proxy.NewBaseServer(Bridge, t).DealClient(s.Conn, t.Client, t.Target.TargetStr, nil, common.CONN_TCP, nil, t.Flow, t.Target.LocalProxy, nil)
+					go proxy.NewBaseServer(Bridge, t).DealClient(s.Conn, t.Client, t.Target.TargetStr, nil, common.CONN_TCP, nil, t.Flow, t.Target.LocalProxy, nil, nil)
 				} else {
 					s.Conn.Close()
 					logs.Trace("This key %s cannot be processed,status is close", s.Password)
@@ -90,6 +88,12 @@ func DealBridgeTask() {
 // start a new server
 func StartNewServer(bridgePort int, cnf *file.Tunnel, bridgeType string, bridgeDisconnect int) {
 	Bridge = bridge.NewTunnel(bridgePort, bridgeType, common.GetBoolByStr(beego.AppConfig.String("ip_limit")), RunList, bridgeDisconnect)
+	// 启动流量持久化（只启动一次，避免每次 AddTask 创建泄漏的 goroutine）
+	if minute, err := beego.AppConfig.Int("flow_store_interval"); err == nil && minute > 0 {
+		go flowSession(time.Minute * time.Duration(minute))
+	}
+	// 启动后台 IO 速率采集，Dashboard 直接读缓存，无需 Sleep
+	tool.StartIORateCollector()
 	go func() {
 		if err := Bridge.StartTunnel(); err != nil {
 			logs.Error("start server bridge error", err)
@@ -103,6 +107,7 @@ func StartNewServer(bridgePort int, cnf *file.Tunnel, bridgeType string, bridgeD
 	}
 	go DealBridgeTask()
 	go dealClientFlow()
+	go dealClientExpire()
 	if svr := NewMode(Bridge, cnf); svr != nil {
 		if err := svr.Start(); err != nil {
 			logs.Error(err)
@@ -119,6 +124,50 @@ func dealClientFlow() {
 	defer ticker.Stop()
 	for range ticker.C {
 		dealClientData()
+	}
+}
+
+// dealClientExpire 周期性扫描客户端到期时间，过期则自动暂停
+func dealClientExpire() {
+	// 启动时立即检查一次，避免重启后到期客户端最多 1 分钟内才被暂停
+	checkClientExpire()
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			checkClientExpire()
+		}
+	}
+}
+
+// checkClientExpire 遍历所有客户端，若 ExpireTime 已过则将 Status 置为 false 并断开连接
+func checkClientExpire() {
+	now := time.Now()
+	changed := false
+	file.GetDb().JsonDb.Clients.Range(func(key, value interface{}) bool {
+		v, ok := value.(*file.Client)
+		if !ok || v == nil {
+			return true
+		}
+		if v.ExpireTime == "" || !v.Status {
+			return true
+		}
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", v.ExpireTime, time.Local)
+		if err != nil {
+			return true
+		}
+		if now.Before(t) {
+			return true
+		}
+		v.Status = false
+		changed = true
+		logs.Info("client id %d (remark: %s) expired at %s, auto paused", v.Id, v.Remark, v.ExpireTime)
+		DelClientConnect(v.Id)
+		return true
+	})
+	if changed {
+		file.GetDb().JsonDb.StoreClientsToJsonFile()
 	}
 }
 
@@ -158,25 +207,20 @@ func NewMode(Bridge *bridge.Bridge, c *file.Tunnel) proxy.Service {
 
 // stop server
 func StopServer(id int) error {
-	//if v, ok := RunList[id]; ok {
 	if v, ok := RunList.Load(id); ok {
 		if svr, ok := v.(proxy.Service); ok {
 			if err := svr.Close(); err != nil {
-				return err
+				logs.Error("stop server id %d error", id, err)
 			}
-			logs.Info("stop server id %d", id)
 		} else {
 			logs.Warn("stop server id %d error", id)
 		}
-		if t, err := file.GetDb().GetTask(id); err != nil {
-			return err
-		} else {
+		RunList.Delete(id)
+		if t, err := file.GetDb().GetTask(id); err == nil {
 			t.Status = false
 			logs.Info("close port %d,remark %s,client id %d,task id %d", t.Port, t.Remark, t.Client.Id, t.Id)
 			file.GetDb().UpdateTask(t)
 		}
-		//delete(RunList, id)
-		RunList.Delete(id)
 		return nil
 	}
 	return errors.New("task is not running")
@@ -193,9 +237,6 @@ func AddTask(t *file.Tunnel) error {
 	if b := tool.TestServerPort(t.Port, t.Mode); !b && t.Mode != "httpHostServer" {
 		logs.Error("taskId %d start error port %d open failed", t.Id, t.Port)
 		return errors.New("the port open error")
-	}
-	if minute, err := beego.AppConfig.Int("flow_store_interval"); err == nil && minute > 0 {
-		go flowSession(time.Minute * time.Duration(minute))
 	}
 	if svr := NewMode(Bridge, t); svr != nil {
 		logs.Info("tunnel task %s start mode：%s port %d", t.Remark, t.Mode, t.Port)
@@ -243,18 +284,16 @@ func GetTunnel(start, length int, typeVal string, clientId int, search string, s
 	all_list := make([]*file.Tunnel, 0) //store all Tunnel
 	list := make([]*file.Tunnel, 0)
 	var cnt int
-	keys := file.GetMapKeys(file.GetDb().JsonDb.Tasks, false, "", "")
 
-	//get all Tunnel and sort
-	for _, key := range keys {
-		if value, ok := file.GetDb().JsonDb.Tasks.Load(key); ok {
-			v := value.(*file.Tunnel)
-			if (typeVal != "" && v.Mode != typeVal || (clientId != 0 && v.Client.Id != clientId)) || (typeVal == "" && clientId != v.Client.Id) {
-				continue
-			}
-			all_list = append(all_list, v)
+	// 单次遍历收集所有符合条件的 Tunnel（修复原代码双重遍历 sync.Map 的性能问题）
+	file.GetDb().JsonDb.Tasks.Range(func(key, value interface{}) bool {
+		v := value.(*file.Tunnel)
+		if (typeVal != "" && v.Mode != typeVal || (clientId != 0 && v.Client.Id != clientId)) || (typeVal == "" && clientId != v.Client.Id) {
+			return true
 		}
-	}
+		all_list = append(all_list, v)
+		return true
+	})
 	//sort by Id, Remark, TargetStr, Port, asc or desc
 	if sortField == "Id" {
 		if order == "asc" {
@@ -288,31 +327,25 @@ func GetTunnel(start, length int, typeVal string, clientId int, search string, s
 		}
 	}
 
-	//search
-	for _, key := range all_list {
-		if value, ok := file.GetDb().JsonDb.Tasks.Load(key.Id); ok {
-			v := value.(*file.Tunnel)
-			if (typeVal != "" && v.Mode != typeVal || (clientId != 0 && v.Client.Id != clientId)) || (typeVal == "" && clientId != v.Client.Id) {
-				continue
-			}
-			if search != "" && !(v.Id == common.GetIntNoErrByStr(search) || v.Port == common.GetIntNoErrByStr(search) || strings.Contains(v.Password, search) || strings.Contains(v.Remark, search) || strings.Contains(v.Target.TargetStr, search)) {
-				continue
-			}
-			cnt++
-			if _, ok := Bridge.Client.Load(v.Client.Id); ok {
-				v.Client.IsConnect = true
-			} else {
-				v.Client.IsConnect = false
-			}
-			if start--; start < 0 {
-				if length--; length >= 0 {
-					if _, ok := RunList.Load(v.Id); ok {
-						v.RunStatus = true
-					} else {
-						v.RunStatus = false
-					}
-					list = append(list, v)
+	//search and paginate（直接在已排序的列表上操作，避免二次 Load）
+	for _, v := range all_list {
+		if search != "" && !(v.Id == common.GetIntNoErrByStr(search) || v.Port == common.GetIntNoErrByStr(search) || strings.Contains(v.Password, search) || strings.Contains(v.Remark, search) || strings.Contains(v.Target.TargetStr, search)) {
+			continue
+		}
+		cnt++
+		if _, ok := Bridge.Client.Load(v.Client.Id); ok {
+			v.Client.IsConnect = true
+		} else {
+			v.Client.IsConnect = false
+		}
+		if start--; start < 0 {
+			if length--; length >= 0 {
+				if _, ok := RunList.Load(v.Id); ok {
+					v.RunStatus = true
+				} else {
+					v.RunStatus = false
 				}
+				list = append(list, v)
 			}
 		}
 	}
@@ -480,25 +513,26 @@ func GetDashboardData() map[string]interface{} {
 	data["swap_mem"] = math.Round(swap.UsedPercent)
 	vir, _ := mem.VirtualMemory()
 	data["virtual_mem"] = math.Round(vir.UsedPercent)
-	conn, _ := net.ProtoCounters(nil)
-	io1, _ := net.IOCounters(false)
-	time.Sleep(time.Millisecond * 500)
-	io2, _ := net.IOCounters(false)
-	if len(io2) > 0 && len(io1) > 0 {
-		data["io_send"] = (io2[0].BytesSent - io1[0].BytesSent) * 2
-		data["io_recv"] = (io2[0].BytesRecv - io1[0].BytesRecv) * 2
+	// IO 速率从后台缓存读取，无需 Sleep 500ms
+	if cached, ok := tool.IORateCache.Load().(map[string]uint64); ok {
+		data["io_send"] = cached["io_send"]
+		data["io_recv"] = cached["io_recv"]
 	}
+	conn, _ := net.ProtoCounters(nil)
 	for _, v := range conn {
 		data[v.Protocol] = v.Stats["CurrEstab"]
 	}
 	//chart
 	var fg int
-	if len(tool.ServerStatus) >= 10 {
-		fg = len(tool.ServerStatus) / 10
+	tool.ServerStatusMu.RLock()
+	statusLen := len(tool.ServerStatus)
+	if statusLen >= 10 {
+		fg = statusLen / 10
 		for i := 0; i <= 9; i++ {
 			data["sys"+strconv.Itoa(i+1)] = tool.ServerStatus[i*fg]
 		}
 	}
+	tool.ServerStatusMu.RUnlock()
 	return data
 }
 

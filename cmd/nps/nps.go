@@ -27,6 +27,7 @@ import (
 
 	"ehang.io/nps/lib/common"
 	"ehang.io/nps/lib/crypt"
+	"ehang.io/nps/web"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 
@@ -70,6 +71,9 @@ func main() {
 			logPath = strings.ReplaceAll(v, "-log_path=", "")
 		}
 	}
+
+	// auto-generate default config files if not exist
+	initConfig(filepath.Join(common.GetRunPath(), "conf"))
 
 	if err := beego.LoadAppConfig("ini", filepath.Join(common.GetRunPath(), "conf", "nps.conf")); err != nil {
 		log.Fatalln("load config file error", err.Error())
@@ -210,7 +214,7 @@ func printSlogan() {
 
 	fmt.Printf("%s", green(""))
 
-	fmt.Printf("\033[32;0m欢迎使用 NPS 管理脚本 \n")
+	fmt.Printf("\033[32;0m欢迎使用 NPS 管理脚本，当前版本：v%s\n", version.VERSION)
 	fmt.Printf("\033[0m") // 重置颜色
 
 	fmt.Printf("\n")
@@ -324,7 +328,7 @@ func inputCmd() {
 			}
 		case "3":
 			install.UpdateNpsNew()
-			return
+			break
 		case "4":
 			// 查看状态
 			var statusMsg = ""
@@ -427,3 +431,83 @@ func run() {
 	}
 	go server.StartNewServer(bridgePort, task, beego.AppConfig.String("bridge_type"), timeout)
 }
+
+func initConfig(confDir string) {
+	if !common.FileExists(confDir) {
+		os.MkdirAll(confDir, 0755)
+	}
+	confPath := filepath.Join(confDir, "nps.conf")
+	if !common.FileExists(confPath) {
+		webPassword := crypt.GetRandomString(8)
+		authKey := crypt.GetRandomString(8)
+		authCryptKey := crypt.GetRandomString(16)
+		content := strings.Replace(defaultNpsConf, "web_password=123", "web_password="+webPassword, 1)
+		content = strings.Replace(content, "auth_key=123", "auth_key="+authKey, 1)
+		content = strings.Replace(content, "auth_crypt_key =213", "auth_crypt_key ="+authCryptKey, 1)
+		f, err := os.Create(confPath)
+		if err != nil {
+			return
+		}
+		defer f.Close()
+		f.WriteString(content)
+		logs.Info("Auto-generated default config file:", confPath)
+		logs.Info("Web login username: admin, password:", webPassword)
+		logs.Info("auth_key:", authKey)
+		logs.Info("auth_crypt_key:", authCryptKey)
+	}
+	web.ExtractWebFiles(common.GetRunPath())
+}
+
+const defaultNpsConf = `http_proxy_ip=0.0.0.0
+http_proxy_port=80
+https_proxy_port=443
+show_http_proxy_port=true
+
+bridge_type=tcp
+bridge_port=8024
+bridge_ip=0.0.0.0
+
+public_vkey=123
+
+flow_store_interval=1
+
+log_level=6
+log_path=nps.log
+
+web_host=a.o.com
+web_username=admin
+web_password=123
+web_port = 8081
+web_ip=0.0.0.0
+web_base_url=
+web_open_ssl=false
+web_cert_file=conf/server.pem
+web_key_file=conf/server.key
+
+auth_key=123
+auth_crypt_key =213
+
+allow_user_login=true
+allow_user_register=false
+allow_user_change_username=true
+
+allow_flow_limit=true
+allow_rate_limit=true
+allow_tunnel_num_limit=true
+allow_local_proxy=false
+allow_connection_num_limit=true
+allow_multi_ip=true
+system_info_display=true
+
+http_add_origin_header=true
+
+http_cache=false
+http_cache_length=100
+
+disconnect_timeout=60
+
+open_captcha=false
+
+tls_enable=true
+tls_bridge_port=8025
+`

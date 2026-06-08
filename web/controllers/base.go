@@ -12,6 +12,7 @@ import (
 	"ehang.io/nps/lib/common"
 	"ehang.io/nps/lib/crypt"
 	"ehang.io/nps/lib/file"
+	"ehang.io/nps/lib/version"
 	"ehang.io/nps/server"
 	"github.com/astaxie/beego"
 )
@@ -55,7 +56,6 @@ func (s *BaseController) Prepare() {
 	} else {
 		s.Data["isAdmin"] = true
 	}
-	s.Data["https_just_proxy"], _ = beego.AppConfig.Bool("https_just_proxy")
 	s.Data["allow_user_login"], _ = beego.AppConfig.Bool("allow_user_login")
 	s.Data["allow_flow_limit"], _ = beego.AppConfig.Bool("allow_flow_limit")
 	s.Data["allow_rate_limit"], _ = beego.AppConfig.Bool("allow_rate_limit")
@@ -65,9 +65,9 @@ func (s *BaseController) Prepare() {
 	s.Data["allow_tunnel_num_limit"], _ = beego.AppConfig.Bool("allow_tunnel_num_limit")
 	s.Data["allow_local_proxy"], _ = beego.AppConfig.Bool("allow_local_proxy")
 	s.Data["allow_user_change_username"], _ = beego.AppConfig.Bool("allow_user_change_username")
-
+	showHttpProxyPort := beego.AppConfig.DefaultBool("show_http_proxy_port", true)
 	httpPort := beego.AppConfig.String("http_proxy_port")
-	if httpPort != "80" {
+	if httpPort != "80" && showHttpProxyPort {
 		s.Data["http_proxy_port"] = ":" + httpPort
 	}
 	s.Data["current_year"] = time.Now().Year()
@@ -99,10 +99,13 @@ func (s *BaseController) display(tpl ...string) {
 
 	s.Data["bridgeType"] = beego.AppConfig.String("bridge_type")
 	if common.IsWindows() {
-		s.Data["win"] = ".exe"
+		s.Data["win"] = "npc.exe"
+	} else {
+		s.Data["win"] = "./npc"
 	}
 
 	s.Data["p"] = strconv.Itoa(server.Bridge.TunnelPort)
+	s.Data["version"] = version.VERSION
 
 	if bridge.ServerTlsEnable {
 		tlsPort := strconv.Itoa(beego.AppConfig.DefaultInt("tls_bridge_port", 8025))

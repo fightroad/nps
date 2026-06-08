@@ -1,5 +1,20 @@
 # NPS
 
+
+> 一款轻量级、高性能、功能强大的内网穿透代理服务器，基于 ehang-io/nps 0.26.10 二次开发。
+
+| 特性 | 说明 |
+| --- | --- |
+| 全协议支持 | TCP、UDP、HTTP、HTTPS、SOCKS5、P2P 全覆盖 |
+| Web 管理界面 | 服务端面板开箱即用 |
+| 全平台兼容 | Linux / macOS / Windows / Android，桌面 GUI 客户端 |
+| TLS 桥接加密 | 防止流量被防火墙识别拦截 |
+| 进阶能力 | 流量统计、限速、IP 黑白名单、Proxy Protocol、负载均衡 |
+| 强大的 API | REST API + MD5 签名鉴权，方便自动化运维 |
+
+<div style="margin-top:1.5rem;padding:1rem 1.25rem;border-left:4px solid #4f46e5;background:var(--vp-c-bg-soft);border-radius:4px;">
+
+
 [新特性文档](https://dqg9t9eulqq.feishu.cn/wiki/FmVVwDcEGiTZxekYJl5ccuFanlg?from=from_copylink)  
 [原版文档](https://ehang.io/nps/documents)
 # 说明
@@ -31,6 +46,45 @@
 
 
 # 更新日志  
+- 2026-06-04  v0.26.34
+  - 新增：
+    - `nps -server` 管理脚本欢迎语显示当前版本号,更新版本时比对版本，已是最新则直接退出，避免无谓覆盖 [#328](https://github.com/yisier/nps/issues/328)
+    - `npc` 管理脚本欢迎语显示当前版本号，新增 `[5] 更新客户端` 选项，更新并替换 npc 二进制
+    - 客户端新增到期时间字段，创建/修改客户端时可选填写，到期后自动暂停客户端 [#322](https://github.com/yisier/nps/issues/322)
+  - 修复：
+    - Dashboard IO 速率采集阻塞请求 500ms，改为后台采集缓存，消除 Sleep 等待
+    - ServerStatus 切片并发读写不安全，添加 RWMutex 保护
+    - flowSession goroutine 泄漏，改为仅在 StartNewServer 启动一次
+    - GetTunnel 双重遍历 sync.Map 性能问题，合并为单次 Range
+    - Bridge Client 字段并发读写不安全，添加 Mutex 保护
+    - TLS ClientHello recordLen 无上限，添加 16KB 限制防止内存耗尽
+    - SOCKS5 地址解析未检查 Read 返回值，改用 io.ReadFull
+    - 文件存储 panic 改为错误日志，defer 清理临时文件防止泄漏
+    - GenerateServerPort 可能无限循环，限制 1000 次重试
+    - P2P UDP 无超时永久阻塞，添加 30s ReadDeadline
+    - P2P goroutine 退出控制改用 context，修复潜在泄漏
+    - 客户端 UDP ReadFrom 错误后未退出，修复无效数据继续处理
+    - [#324](https://github.com/yisier/nps/issues/324) 隧道/域名解析/UDP 流量始终为 0
+    - muxPackager buffer pool 泄漏：UnPack() 错误路径未归还 windowBuff 导致内存持续增长
+    - bridge 客户端重连时旧 WORK_CHAN/WORK_FILE mux 未关闭，底层连接和 goroutine 永不释放
+    - pmux 连接超时泄漏：process() channel 发送超时后连接未关闭，且 ACCEPT_TIME_OUT 单位错误（10ns 应为 10s）
+    - pmux 关闭流程 panic：加 done channel + WaitGroup 保证 Close() 等所有 process() 退出后再 close conn channel；process() 入口设 ReadDeadline 防止阻塞读导致 wg.Wait() 死锁；PortListener 加 done channel 唤醒 Accept()
+  - 优化：ioutil.WriteFile → os.WriteFile、rand.Seed → rand.New 本地随机源  
+  
+- 2026-05-23  v0.26.33  
+  - 新增：
+    - 配置文件自动生成：启动时若 conf 目录或 nps.conf 不存在，自动创建并写入默认配置，方便 Docker 部署
+    - 首次启动默认 web_username/admin、web_password、auth_key、auth_crypt_key 均改为随机生成，并打印到终端，提升安全性
+    - Web 静态文件打包进可执行文件 + 静态文件 URL 加入版本号参数，升级后自动刷新缓存，部署无需单独拷贝 web 目录
+    - 精简发布包：去除打包时冗余的 conf/nps.conf、web 目录
+    - 清理失效配置项：移除 appname、runmode、https_default_cert_file、https_default_key_file、https_just_proxy
+  - 修复：
+    - [#184](https://github.com/yisier/nps/issues/184) 限速导致隧道中断：UpdateClient 在 RateLimit=0 时创建零速率令牌桶导致永久阻塞
+    - [#159](https://github.com/yisier/nps/issues/159) 关闭隧道端口仍可用：StopServer 错误时提前返回未更新状态 + 重复 OpenTask case 导致隧道被自动重启
+    - [#170](https://github.com/yisier/nps/issues/170) TCP 负载均衡只有一个后端可达：GetRandomTarget 未处理 \r 换行符和尾部空行
+    - [#319](https://github.com/yisier/nps/issues/319) 客户端列表不显示实时网速：NowRate 计算逻辑错误，改为统计每秒实际消耗字节数
+    - [#306](https://github.com/yisier/nps/issues/306) [#316](https://github.com/yisier/nps/issues/316) TCP Basic 认证与域名解析冲突：移除 TCP 隧道 Basic 认证探测，域名解析继续使用客户端 Basic 认证
+
 - 2026-03-27  v0.26.32
   - 修复：
     - 客户端注册参数未正确处理[快捷启动命令]和[TLS快捷启动命令] [#303](https://github.com/yisier/nps/issues/303)  

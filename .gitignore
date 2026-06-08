@@ -16,9 +16,33 @@
 *.test
 *.out
 
+# Go build outputs
+/nps.exe
+/npc.exe
+
 # Logs & temp files
 *.log
 *.tmp
 *.swp
 *.swo
-*.DS_Store
+
+# Node.js / VuePress
+node_modules/
+yarn.lock
+pnpm-lock.yaml
+
+# VuePress build artifacts
+docs/.vuepress/.cache/
+docs/.vuepress/.temp/
+docs/.vuepress/dist/
+# VuePress dev runtime
+docs/vuepress-dev.log
+docs/vuepress-dev.err.log
+docs/vuepress-dev.pid
+docs/node_modules/
+docs/yarn.lock
+docs/.vscode
+
+# OS
+.DS_Store
+Thumbs.db
