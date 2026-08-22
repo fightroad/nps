@@ -1,6 +1,37 @@
 ﻿# 更新日志
+- 2026-08-08  v0.26.37
+  - 修复：
+    - NPC 安装到系统服务失败 BUG [#338](https://github.com/yisier/nps/issues/338)  
+    - 隧道实际未运行但面板提示「启动成功」、运行状态始终为关闭的问题 [#339](https://github.com/yisier/nps/issues/339)
+    - 配置 `allow_ports` 后随机生成端口问题 [#339](https://github.com/yisier/nps/issues/339)
+    - Web 面板`languages.xml`使用 NPS 版本号作为缓存标识 [#342](https://github.com/yisier/nps/issues/342)
+  - 新增：
+     - 客户端、隧道、域名解析修改接口支持修改流量数据 [#341](https://github.com/yisier/nps/issues/341)
 
-> 本页内容同步自仓库根目录 [`README.md`](https://github.com/yisier/nps/blob/master/README.md) 的「更新日志」章节。
+- 2026-07-12  v0.26.36
+  - 新增：
+    - 新增客户端内网地址上报功能,客户端列表展示 npc 内网地址 [#333](https://github.com/yisier/nps/issues/333)
+    - Web 管理端客户端/隧道/域名列表业务字段支持服务端排序（备注、状态、在线等）[#254](https://github.com/yisier/nps/issues/254)
+  - 优化：
+    - 不再依赖外部 `web` 目录的静态文件
+  - 修复：
+    - 客户端/服务端在线更新失败 BUG
+    - `nps -server` 安装成功后 `web_port` 未正常显示BUG [#317](https://github.com/yisier/nps/issues/317)
+    - Bridge 握手增加 10s 读超时，校验失败/读失败立即关闭连接，减轻端口扫描导致的连接与 goroutine 堆积 [#281](https://github.com/yisier/nps/issues/281)
+    - 解决私密代理和P2P连接的TLS启用问题 [#143](https://github.com/yisier/nps/issues/143)
+    - HTTP 正向代理 Basic 认证 BUG[#133](https://github.com/yisier/nps/issues/133)
+    - SOCKS5 用户名密码认证 BUG [#133](https://github.com/yisier/nps/issues/133)
+    - 客户端建连失败后半连接假死、需手动重启 npc BUG [#115](https://github.com/yisier/nps/issues/115)
+
+- 2026-07-04  v0.26.35
+  - 新增：
+    - 客户端列表、隧道列表、域名解析列表支持多选批量删除 [#287](https://github.com/yisier/nps/issues/287)
+  - 修复：
+    - HTTP 代理在 SVN 客户端无法正常检出 [#336](https://github.com/yisier/nps/issues/336)
+    - 新增/编辑隧道时无提示且不跳转，重复点击会产生多条记录 [#334](https://github.com/yisier/nps/issues/334)
+    - mips/mipsle 架构运行出现 Illegal instruction 错误 [#331](https://github.com/yisier/nps/issues/331)
+  - 优化：
+    - 隧道、域名解析编辑页的客户端 ID 改为下拉选择 [#334](https://github.com/yisier/nps/issues/334)
 
 - 2026-06-04  v0.26.34
   - 新增：

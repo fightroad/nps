@@ -117,6 +117,37 @@ func (s *Bridge) StartTunnel() error {
 	return nil
 }
 
+// requestClientLocalAddr asks the client for private/LAN IPs on the main signal conn.
+// New clients reply with WriteLenContent; old clients ignore the flag and we time out.
+func (s *Bridge) requestClientLocalAddr(id int, c *conn.Conn) {
+	if c == nil || c.Conn == nil {
+		return
+	}
+	if _, err := c.Write([]byte(common.REPORT_LOCAL_IP)); err != nil {
+		return
+	}
+	_ = c.Conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	defer func() {
+		// clear deadline so health / later reads are not affected
+		_ = c.Conn.SetReadDeadline(time.Time{})
+	}()
+	b, err := c.GetShortLenContent()
+	if err != nil {
+		logs.Trace("clientId %d did not report local addr (old client or timeout): %v", id, err)
+		return
+	}
+	localAddr := strings.TrimSpace(string(b))
+	if localAddr == "" {
+		return
+	}
+	if client, err := file.GetDb().GetClient(id); err == nil {
+		client.Lock()
+		client.LocalAddr = localAddr
+		client.Unlock()
+		logs.Info("clientId %d local addr: %s", id, localAddr)
+	}
+}
+
 // get health information form client
 func (s *Bridge) GetHealthFromClient(id int, c *conn.Conn) {
 	for {
@@ -185,6 +216,7 @@ func (s *Bridge) GetHealthFromClient(id int, c *conn.Conn) {
 // 验证失败，返回错误验证flag，并且关闭连接
 func (s *Bridge) verifyError(c *conn.Conn) {
 	c.Write([]byte(common.VERIFY_EER))
+	c.Close()
 }
 
 func (s *Bridge) verifySuccess(c *conn.Conn) {
@@ -192,16 +224,19 @@ func (s *Bridge) verifySuccess(c *conn.Conn) {
 }
 
 func (s *Bridge) cliProcess(c *conn.Conn) {
+	// 握手 10s 超时：扫描/半开连接不会一直占着 goroutine；成功后清掉
+	_ = c.SetReadDeadline(time.Now().Add(10 * time.Second))
+
 	//read test flag
 	if _, err := c.GetShortContent(3); err != nil {
 		logs.Info("The client %s connect error", c.Conn.RemoteAddr(), err.Error())
+		c.Close()
 		return
 	}
-	//version check
-	if b, err := c.GetShortLenContent(); err != nil || string(b) != version.GetVersion() {
-		//logs.Info("The client %s version does not match", c.Conn.RemoteAddr())
-		//c.Close()
-		//return
+	//version check（版本不匹配仍兼容放行；读失败则断开）
+	if _, err := c.GetShortLenContent(); err != nil {
+		c.Close()
+		return
 	}
 	//version get
 	var vs []byte
@@ -213,7 +248,7 @@ func (s *Bridge) cliProcess(c *conn.Conn) {
 	}
 	//write server version to client
 	c.Write([]byte(crypt.Md5(version.GetVersion())))
-	c.SetReadDeadlineBySecond(5)
+	_ = c.SetReadDeadline(time.Now().Add(10 * time.Second))
 	var buf []byte
 	//get vKey from client
 	if buf, err = c.GetShortContent(32); err != nil {
@@ -230,9 +265,12 @@ func (s *Bridge) cliProcess(c *conn.Conn) {
 		s.verifySuccess(c)
 	}
 	if flag, err := c.ReadFlag(); err == nil {
+		// 握手完成，交给 typeDeal 做长连接
+		_ = c.SetReadDeadline(time.Time{})
 		s.typeDeal(flag, c, id, string(vs))
 	} else {
 		logs.Warn(err, flag)
+		c.Close()
 	}
 	return
 }
@@ -285,6 +323,8 @@ func (s *Bridge) typeDeal(typeVal string, c *conn.Conn, id int, vs string) {
 				oldSignal.WriteClose()
 			}
 		}
+		// Request private/LAN IPs from client. Old clients ignore the flag; short timeout keeps compatibility.
+		s.requestClientLocalAddr(id, c)
 		go s.GetHealthFromClient(id, c)
 		logs.Info("clientId %d connection succeeded, address:%s ", id, c.Conn.RemoteAddr())
 	case common.WORK_CHAN:

@@ -44,6 +44,7 @@ func (self *LoginController) Index() {
 	self.Data["version"] = version.VERSION
 	self.Data["register_allow"], _ = beego.AppConfig.Bool("allow_user_register")
 	self.Data["captcha_open"], _ = beego.AppConfig.Bool("open_captcha")
+	self.Data["version"] = version.VERSION
 	self.TplName = "login/index.html"
 }
 

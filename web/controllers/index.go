@@ -251,7 +251,7 @@ func (s *IndexController) Edit() {
 					t.Port = tool.GenerateServerPort(t.Mode)
 				}
 
-				if !tool.TestServerPort(s.GetIntNoErr("port"), t.Mode) {
+				if !tool.TestServerPort(t.Port, t.Mode) {
 					s.AjaxErr("The port cannot be opened because it may has been occupied or is no longer allowed.")
 					return
 				}
@@ -266,6 +266,12 @@ func (s *IndexController) Edit() {
 			t.StripPre = s.getEscapeString("strip_pre")
 			t.Remark = s.getEscapeString("remark")
 			t.Target.LocalProxy = s.GetBoolNoErr("local_proxy")
+			if s.GetString("flow_inlet") != "" {
+				t.Flow.InletFlow = int64(s.GetIntNoErr("flow_inlet"))
+			}
+			if s.GetString("flow_export") != "" {
+				t.Flow.ExportFlow = int64(s.GetIntNoErr("flow_export"))
+			}
 			file.GetDb().UpdateTask(t)
 			server.StopServer(t.Id)
 			server.StartTask(t.Id)
@@ -307,7 +313,7 @@ func (s *IndexController) HostList() {
 	} else {
 		start, length := s.GetAjaxParams()
 		clientId := s.GetIntNoErr("client_id")
-		list, cnt := file.GetDb().GetHost(start, length, clientId, s.getEscapeString("search"))
+		list, cnt := server.GetHostList(start, length, clientId, s.getEscapeString("search"), s.getEscapeString("sort"), s.getEscapeString("order"))
 		s.AjaxTable(list, cnt, cnt, nil)
 	}
 }
@@ -442,6 +448,12 @@ func (s *IndexController) EditHost() {
 				h.AutoHttps = false
 			}
 
+			if s.GetString("flow_inlet") != "" {
+				h.Flow.InletFlow = int64(s.GetIntNoErr("flow_inlet"))
+			}
+			if s.GetString("flow_export") != "" {
+				h.Flow.ExportFlow = int64(s.GetIntNoErr("flow_export"))
+			}
 			file.GetDb().JsonDb.StoreHostToJsonFile()
 		}
 		s.AjaxOk("modified success")
