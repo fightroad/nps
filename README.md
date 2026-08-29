@@ -1,6 +1,6 @@
 # NPS
 
-![Version](https://img.shields.io/badge/version-v0.26.37-blue)
+![Version](https://img.shields.io/badge/version-v0.26.38-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 ![Go](https://img.shields.io/badge/Go-%3E%3D1.22-00ADD8?logo=go)
 
@@ -46,6 +46,12 @@
 
 ![image](https://raw.githubusercontent.com/yisier/nps/master/docs/.vuepress/public/image/new/cmd.png)
 
+
+#### GUI
+
+![image](https://yisier.github.io/nps/image/new/gui.png)
+
+
 #### 命令行直接启动
 
 ```shell
@@ -53,6 +59,7 @@ npc -server=ip:8024 -vkey=xxx                           # 标准
 npc -server=ip:8025 -vkey=xxx -tls_enable=true           # TLS 桥接
 npc -server=ip:8024 -vkey=vkey1,vkey2                    # 多隧道
 ```
+
 
 ---
 
