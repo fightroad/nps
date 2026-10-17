@@ -1,6 +1,6 @@
 # NPS
 
-![Version](https://img.shields.io/badge/version-v0.26.38-blue)
+![Version](https://img.shields.io/badge/version-v0.26.39-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 ![Go](https://img.shields.io/badge/Go-%3E%3D1.22-00ADD8?logo=go)
 
@@ -12,11 +12,10 @@
 
 ---
 ## 💰 赞助 / 推荐
-#### ☁️ [雨云 — 国内便宜稳定的云服务器，首月 5 折](https://www.rainyun.com/MjY0MzY1_)
-500M 带宽，高仿物理机，云服务器**15 元起**，通过此链接注册首月 5 折。
+#### 【腾讯云】[2核2G4M 服务器新客99元/年起](https://cloud.tencent.com/act/cps/redirect?redirect=6544&cps_key=de079542f18563fceb5c9b687dad2943&from=console)
 
-#### 🚀 [NATNPS 云穿透 — 免费 3M 带宽 / 2 条隧道](https://natnps.com/register?utm_from=MQ==)
-无需自备服务器，注册即用。免费版 3M 带宽 2 条隧道；6.8 元 12M 带宽 10 条隧道；13.8 元 24M 带宽 20 条隧道。
+####  【NATNPS 云穿透】 — [无需自备服务器，注册即用，免费 3M 带宽 / 2 条隧道](https://natnps.com/register?utm_from=MQ==)
+
 
 ---
 ## 🚀 快速开始
