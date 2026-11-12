@@ -86,7 +86,7 @@ func DealBridgeTask() {
 
 // start a new server
 func StartNewServer(bridgePort int, cnf *file.Tunnel, bridgeType string, bridgeDisconnect int) {
-	Bridge = bridge.NewTunnel(bridgePort, bridgeType, common.GetBoolByStr(beego.AppConfig.String("ip_limit")), RunList, bridgeDisconnect)
+	Bridge = bridge.NewTunnel(bridgePort, bridgeType, RunList, bridgeDisconnect)
 	// 启动流量持久化（只启动一次，避免每次 AddTask 创建泄漏的 goroutine）
 	if minute, err := beego.AppConfig.Int("flow_store_interval"); err == nil && minute > 0 {
 		go flowSession(time.Minute * time.Duration(minute))
@@ -198,8 +198,7 @@ func NewMode(Bridge *bridge.Bridge, c *file.Tunnel) proxy.Service {
 		httpsPort, _ := beego.AppConfig.Int("https_proxy_port")
 		useCache, _ := beego.AppConfig.Bool("http_cache")
 		cacheLen, _ := beego.AppConfig.Int("http_cache_length")
-		addOrigin, _ := beego.AppConfig.Bool("http_add_origin_header")
-		service = proxy.NewHttp(Bridge, c, httpPort, httpsPort, useCache, cacheLen, addOrigin)
+		service = proxy.NewHttp(Bridge, c, httpPort, httpsPort, useCache, cacheLen)
 	}
 	return service
 }
@@ -450,7 +449,7 @@ func GetDashboardData() map[string]interface{} {
 	data["bridgeType"] = beego.AppConfig.String("bridge_type")
 	data["httpProxyPort"] = beego.AppConfig.String("http_proxy_port")
 	data["httpsProxyPort"] = beego.AppConfig.String("https_proxy_port")
-	data["ipLimit"] = beego.AppConfig.String("ip_limit")
+	data["ipLimit"] = strconv.FormatBool(file.GetDb().GetGlobalSettings().IpLimit)
 	// 流量数据持久化：转换为描述性文字
 	flowStoreIntervalStr := beego.AppConfig.String("flow_store_interval")
 	if flowStoreIntervalStr == "" || flowStoreIntervalStr == "0" {
